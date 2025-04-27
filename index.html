@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Emotion Analyzer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+    <div class="container py-5">
+        <div class="card shadow p-4">
+            <h1 class="text-center mb-4">🖼️ Image Emotion Analyzer</h1>
+
+            <form id="upload-form" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="image" class="form-label">Choose an Image</label>
+                    <input class="form-control" type="file" id="image" name="image" accept="image/*" required>
+                </div>
+                <button class="btn btn-primary w-100" type="submit">Analyze</button>
+            </form>
+
+            <div id="result" class="mt-5" style="display:none;">
+                <h3>Analysis Result:</h3>
+
+                <!-- Image preview -->
+                <div class="text-center mb-4">
+                    <img id="preview" src="#" alt="Selected Image" class="img-fluid rounded" style="max-height: 300px;">
+                </div>
+
+                <ul class="list-group">
+                    <li class="list-group-item"><strong>Sentiment:</strong> <span id="sentiment"></span></li>
+                    <li class="list-group-item"><strong>Emotion:</strong> <span id="emotion"></span></li>
+                    <li class="list-group-item"><strong>Reason:</strong> <span id="reason"></span></li>
+                    <li class="list-group-item"><strong>Caption:</strong> <span id="caption"></span></li>
+                </ul>
+            </div>
+
+            <div id="error" class="alert alert-danger mt-3" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('upload-form');
+        const imageInput = document.getElementById('image');
+        const preview = document.getElementById('preview');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('sentiment').textContent = data.sentiment;
+                    document.getElementById('emotion').textContent = data.emotion;
+                    document.getElementById('reason').textContent = data.reason;
+                    document.getElementById('caption').textContent = data.caption;
+                    
+                    // Show the preview image
+                    const file = imageInput.files[0];
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        preview.src = e.target.result;
+                    }
+                    reader.readAsDataURL(file);
+
+                    document.getElementById('result').style.display = 'block';
+                } else {
+                    document.getElementById('error').textContent = data.error;
+                    document.getElementById('error').style.display = 'block';
+                }
+            } catch (error) {
+                document.getElementById('error').textContent = 'Something went wrong!';
+                document.getElementById('error').style.display = 'block';
+            }
+        });
+    </script>
+
+</body>
+</html>
